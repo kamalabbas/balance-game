@@ -10,7 +10,6 @@ namespace RollABall.Licensing
     public static class LicenseService
     {
         public const string ProductId = "rollaball";
-        private const string ActivationKeyPref = "ActivationKey";
         private const string PublicKeyResourceName = "license_public_key";
         private const string KeyPrefix = "ROLLABALL1";
         private const string LicenseFileName = "license.key";
@@ -22,40 +21,68 @@ namespace RollABall.Licensing
             reason = "Editor mode (no license needed).";
             return true;
 #else
-            string storedKey = PlayerPrefs.GetString(ActivationKeyPref, string.Empty);
-            if (string.IsNullOrWhiteSpace(storedKey))
+            if (TryLoadActivationKeyFromFile(out string fileKey, out string filePath))
             {
-                if (TryLoadActivationKeyFromFile(out string fileKey, out string filePath))
+                if (TryValidateActivationKey(fileKey, out reason))
                 {
-                    if (TryValidateActivationKey(fileKey, out reason))
-                    {
-                        SaveActivationKey(fileKey);
-                        return true;
-                    }
-
-                    reason = $"License file invalid: {filePath}";
-                    return false;
+                    return true;
                 }
 
                 EnsureMachineCodeFileWritten();
-                reason = "Not activated. Check machine_code.txt.";
+                reason = $"License file invalid: {filePath}";
                 return false;
             }
 
-            return TryValidateActivationKey(storedKey, out reason);
+            EnsureMachineCodeFileWritten();
+            reason = "Not activated. Put license.key next to the .exe (machine_code.txt was generated).";
+            return false;
 #endif
         }
 
         public static void SaveActivationKey(string activationKey)
         {
-            PlayerPrefs.SetString(ActivationKeyPref, activationKey);
-            PlayerPrefs.Save();
+            if (string.IsNullOrWhiteSpace(activationKey))
+            {
+                return;
+            }
+
+            string dir = GetExeDirectorySafe();
+            if (string.IsNullOrWhiteSpace(dir))
+            {
+                return;
+            }
+
+            try
+            {
+                string path = Path.Combine(dir, LicenseFileName);
+                File.WriteAllText(path, activationKey.Trim());
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public static void ClearActivationKey()
         {
-            PlayerPrefs.DeleteKey(ActivationKeyPref);
-            PlayerPrefs.Save();
+            string dir = GetExeDirectorySafe();
+            if (string.IsNullOrWhiteSpace(dir))
+            {
+                return;
+            }
+
+            try
+            {
+                string path = Path.Combine(dir, LicenseFileName);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public static string GetMachineCode()
@@ -78,7 +105,7 @@ namespace RollABall.Licensing
             activationKey = string.Empty;
             pathUsed = string.Empty;
 
-            foreach (string dir in new[] { GetExeDirectorySafe(), Application.persistentDataPath })
+            foreach (string dir in new[] { GetExeDirectorySafe() })
             {
                 if (string.IsNullOrWhiteSpace(dir))
                 {

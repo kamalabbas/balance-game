@@ -87,6 +87,9 @@ if ([string]::IsNullOrWhiteSpace($MachineCode)) {
     exit 2
 }
 
+# Normalize machine code (Unity outputs uppercase Base32; clipboard/file copies may include newlines/spaces)
+$MachineCode = ($MachineCode -replace '\s', '').ToUpperInvariant()
+
 $product = 'rollaball'
 $issuedAt = [DateTime]::UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'")
 

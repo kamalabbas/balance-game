@@ -86,36 +86,14 @@ public class PlayerController : MonoBehaviour {
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            SceneManager.LoadScene(1);
+			Time.timeScale = 1f;
+			SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
-
-		if (Input.GetKeyDown(KeyCode.E))
-		{
-			ApplyDifficulty(EasyTimeLimitSeconds);
-		}
-
-		if (Input.GetKeyDown(KeyCode.M))
-		{
-			ApplyDifficulty(MediumTimeLimitSeconds);
-		}
-
-		if (Input.GetKeyDown(KeyCode.H))
-		{
-			ApplyDifficulty(HardTimeLimitSeconds);
-		}
 
 		if (Input.GetKeyDown(KeyCode.Escape)) {
 			 SceneManager.LoadScene(0);
 		}
     }
-
-	private void ApplyDifficulty(float timeLimitSeconds)
-	{
-		PlayerPrefs.SetFloat(TimeLimitPrefKey, timeLimitSeconds);
-		PlayerPrefs.Save();
-		Time.timeScale = 1f;
-		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-	}
 
 	// Each physics step..
 	void FixedUpdate ()
@@ -183,7 +161,7 @@ public class PlayerController : MonoBehaviour {
 			TimeRemaning.text = "Time Remaining: <color=white>" + timeFormatted + "</color>";
 
 			Time.timeScale = 0f;
-			StartCoroutine(LoadSceneAfterDelay(15f, 0));
+			StartCoroutine(LoadSceneAfterDelay(8f, 0));
 		}
 
 		if (other.gameObject.CompareTag ("PowerUp"))
