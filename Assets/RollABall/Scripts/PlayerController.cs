@@ -4,8 +4,14 @@
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using RollABall.Licensing;
 
 public class PlayerController : MonoBehaviour {
+
+	private const string TimeLimitPrefKey = "TimeLimitSeconds";
+	private const float EasyTimeLimitSeconds = 270f;   // 4:30
+	private const float MediumTimeLimitSeconds = 180f; // 3:00
+	private const float HardTimeLimitSeconds = 90f;    // 1:30
 
 	// Create public variables for player speed, and for the Text UI game objects
 	public float speed;
@@ -33,6 +39,13 @@ public class PlayerController : MonoBehaviour {
 
 	void Start ()
 	{
+		if (!LicenseService.IsActivated(out _))
+		{
+			Time.timeScale = 1f;
+			SceneManager.LoadScene(0);
+			return;
+		}
+
 		rb = GetComponent<Rigidbody>(); // Assign the Rigidbody component to our private rb variable
 
 		count = 0; // Set the count to zero
@@ -41,6 +54,12 @@ public class PlayerController : MonoBehaviour {
 		TimeRemaning.text = "";
 
 		playerLives = PlayerPrefs.GetInt("PlayerLives");
+
+		if (!PlayerPrefs.HasKey(TimeLimitPrefKey))
+		{
+			PlayerPrefs.SetFloat(TimeLimitPrefKey, EasyTimeLimitSeconds);
+			PlayerPrefs.Save();
+		}
 
 
 
@@ -70,10 +89,33 @@ public class PlayerController : MonoBehaviour {
             SceneManager.LoadScene(1);
         }
 
+		if (Input.GetKeyDown(KeyCode.E))
+		{
+			ApplyDifficulty(EasyTimeLimitSeconds);
+		}
+
+		if (Input.GetKeyDown(KeyCode.M))
+		{
+			ApplyDifficulty(MediumTimeLimitSeconds);
+		}
+
+		if (Input.GetKeyDown(KeyCode.H))
+		{
+			ApplyDifficulty(HardTimeLimitSeconds);
+		}
+
 		if (Input.GetKeyDown(KeyCode.Escape)) {
 			 SceneManager.LoadScene(0);
 		}
     }
+
+	private void ApplyDifficulty(float timeLimitSeconds)
+	{
+		PlayerPrefs.SetFloat(TimeLimitPrefKey, timeLimitSeconds);
+		PlayerPrefs.Save();
+		Time.timeScale = 1f;
+		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+	}
 
 	// Each physics step..
 	void FixedUpdate ()

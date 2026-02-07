@@ -3,7 +3,8 @@ using UnityEngine.UI;
 
 public class GameTimer : MonoBehaviour
 {
-    public float timeLimit = 120f; // 2 minutes
+    private const string TimeLimitPrefKey = "TimeLimitSeconds";
+    public float timeLimit = 270f; // Default: Easy (4:30)
     public Text timerText; // Reference to the UI Text component
     public PlayerController playerController; 
     public float timeRemaining;
@@ -11,6 +12,15 @@ public class GameTimer : MonoBehaviour
 
     void Start()
     {
+        if (PlayerPrefs.HasKey(TimeLimitPrefKey))
+        {
+            float savedLimit = PlayerPrefs.GetFloat(TimeLimitPrefKey);
+            if (savedLimit > 0f)
+            {
+                timeLimit = savedLimit;
+            }
+        }
+
         ResetTimer();
     }
 
@@ -45,6 +55,25 @@ public class GameTimer : MonoBehaviour
         UpdateTimerText();
     }
 
+    public void SetTimeLimit(float newTimeLimitSeconds, bool restartTimer = true)
+    {
+        if (newTimeLimitSeconds <= 0f)
+        {
+            return;
+        }
+
+        timeLimit = newTimeLimitSeconds;
+
+        if (restartTimer)
+        {
+            StartTimer();
+        }
+        else
+        {
+            ResetTimer();
+        }
+    }
+
     private void UpdateTimerText()
     {
         int minutes = Mathf.FloorToInt(timeRemaining / 60);
@@ -58,12 +87,18 @@ public class GameTimer : MonoBehaviour
         // For instance, you might trigger a game over condition or reset the game
         Debug.Log("Time's up!");
 
-        playerController.winText.text = "Time's Up";
+        if (playerController != null && playerController.winText != null)
+        {
+            playerController.winText.text = "Time's Up";
+        }
 
         // Stop the game
         Time.timeScale = 0f;
 
         // Call the LoadSceneAfterDelay function in the PlayerController script
-        StartCoroutine(playerController.LoadSceneAfterDelay(3f, 1)); // Wait 5 seconds before reloading the scene
+        if (playerController != null)
+        {
+            StartCoroutine(playerController.LoadSceneAfterDelay(3f, 1)); // Wait 3 seconds before reloading the scene
+        }
     }
 }
