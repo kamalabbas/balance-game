@@ -127,7 +127,6 @@ public class Menu : MonoBehaviour
             return;
         }
 
-        PlayerPrefs.SetInt("PlayerLives", 2);
         PlayerPrefs.SetFloat(TimeLimitPrefKey, timeLimitSeconds);
         PlayerPrefs.SetString(ModePrefKey, selectedModeLabel);
         PlayerPrefs.Save();

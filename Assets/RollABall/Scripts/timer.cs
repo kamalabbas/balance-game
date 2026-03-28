@@ -95,10 +95,10 @@ public class GameTimer : MonoBehaviour
         // Stop the game
         Time.timeScale = 0f;
 
-        // Call the LoadSceneAfterDelay function in the PlayerController script
+        // Go back to main menu after a short delay
         if (playerController != null)
         {
-            StartCoroutine(playerController.LoadSceneAfterDelay(3f, 1)); // Wait 3 seconds before reloading the scene
+            StartCoroutine(playerController.LoadSceneAfterDelay(3f, 0));
         }
     }
 }
